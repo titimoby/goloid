@@ -30,7 +30,7 @@ augment AppListener {
     Gdx.gl(): glClear(GL30.GL_COLOR_BUFFER_BIT())
 
     this: batch(): begin()
-    this: font(): draw(this: batch(), "Hello World", 200, 200)
+    this: font(): draw(this: batch(), "Hello World", 200_F, 200_F)
     this: batch(): end()
   }
 
