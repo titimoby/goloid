@@ -10,11 +10,8 @@ import com.badlogic.gdx.graphics.GL30
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 
-function main = |args| {
-  println("start")
-
-  let conf = Adapter()
-  conf: interfaces(["com.badlogic.gdx.ApplicationListener"])
+function appListener = |adapter| {
+  adapter: interfaces(["com.badlogic.gdx.ApplicationListener"])
   : implements("create", |this| {
       #var batch = SpriteBatch()
       #var font = BitmapFont()
@@ -51,8 +48,13 @@ function main = |args| {
       println("resume to implement")
     }
   )
+  return adapter
+}
 
-  let helloworld = conf: newInstance()
+function main = |args| {
+  println("start")
+
+  let helloworld = appListener(Adapter()): newInstance()
 
   let cfg = LwjglApplicationConfiguration()
   cfg: title("hello-world")
