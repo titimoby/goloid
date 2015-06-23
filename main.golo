@@ -10,52 +10,56 @@ import com.badlogic.gdx.graphics.GL30
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 
-struct tipStruct = {
-  value
+
+
+struct AppListener = { batch, font }
+augment AppListener {
+  function create = |this| {
+    this: batch(SpriteBatch())
+    this: font(BitmapFont())
+    this: font(): setColor(Color.RED())
+  }
+
+  function dispose = |this| {
+    this: batch(): dispose()
+    this: font(): dispose()
+  }
+
+  function render = |this| {
+    Gdx.gl(): glClearColor(1, 1, 1, 1)
+    Gdx.gl(): glClear(GL30.GL_COLOR_BUFFER_BIT())
+
+    this: batch(): begin()
+    this: font(): draw(this: batch(), "Hello World", 200, 200)
+    this: batch(): end()
+  }
+
+  function resize = |this, width, height| {
+    println("resize to implement")
+  }
+  function pause = |this| {
+    println("pause to implement")
+  }
+  function resume = |this| {
+    println("resume to implement")
+  }
 }
 
-function appListener = |adapter| {
-  let batch = tipStruct(1)
-  let font = tipStruct(1)
-  adapter: interfaces(["com.badlogic.gdx.ApplicationListener"])
-  : implements("create", |this| {
-      batch: value(SpriteBatch())
-      font: value(BitmapFont())
-      font: value(): setColor(Color.RED())
-  })
-  : implements("dispose", |this| {
-      batch: value(): dispose()
-      font: value(): dispose()
-    }
-  )
-  : implements("render", |this| {
-      Gdx.gl(): glClearColor(1, 1, 1, 1)
-      Gdx.gl(): glClear(GL30.GL_COLOR_BUFFER_BIT())
-
-      batch: value(): begin()
-      font: value(): draw(batch: value(), "Hello World", 200, 200)
-      batch: value(): end()
-    }
-  )
-  : implements("resize", |this, width, height| {
-      println("resize to implement")
-    }
-  )
-  : implements("pause", |this| {
-      println("pause to implement")
-    }
-  )
-  : implements("resume", |this| {
-      println("resume to implement")
-    }
-  )
-  return adapter
+function createAppListener = {
+    let delegate = AppListener()
+    return Adapter(): interfaces(["com.badlogic.gdx.ApplicationListener"])
+    : implements("create", |this| { delegate: create() })
+    : implements("dispose", |this| { delegate: dispose() })
+    : implements("render", |this| { delegate: render() })
+    : implements("resize", |this, width, height| { delegate: resize(width, height) })
+    : implements("pause", |this| { delegate: pause() })
+    : implements("resume", |this| { delegate: resume() })
 }
 
 function main = |args| {
   println("start")
 
-  let helloworld = appListener(Adapter()): newInstance()
+  let helloworld = createAppListener(): newInstance()
 
   let cfg = LwjglApplicationConfiguration()
   cfg: title("hello-world")
