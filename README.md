@@ -1,7 +1,7 @@
 # goloid
 
 This repository will be used to share my efforts to develop a clone of the old Vectrex Asteroids.
-This will be based on [Golo language][http://golo-lang.org/] and the graphics/game library will be [LibGDX][http://libgdx.badlogicgames.com/] (also licensed under the Apache License, Version 2.0)
+This will be based on [Golo language][golo] and the graphics/game library will be [LibGDX][libgdx] (also licensed under the Apache License, Version 2.0)
 
 ## License
 
@@ -22,3 +22,6 @@ This will be based on [Golo language][http://golo-lang.org/] and the graphics/ga
 ##Contribute
 
 Any contribution is welcome, fork and pull a request, add issues, suggestions...
+
+[golo]: http://golo-lang.org/
+[libgdx]: http://libgdx.badlogicgames.com/
