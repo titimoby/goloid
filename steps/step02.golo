@@ -10,18 +10,13 @@ import com.badlogic.gdx.graphics.GL30
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Sprite
-import com.badlogic.gdx.Input
-import com.badlogic.gdx.Input.Keys
 
 struct AppListener = { batch, texture, sprite }
 augment AppListener {
   function create = |this| {
     this: batch(SpriteBatch())
-    this: texture(Texture(Gdx.files(): internal("data/player.png")))
+    this: texture(Texture(Gdx.files(): internal("data/jet.png")))
     this: sprite(Sprite(this: texture()))
-    let w = Gdx.graphics(): getWidth()
-    let h = Gdx.graphics(): getHeight()
-    this: sprite(): setPosition(w/2 - this: sprite(): getWidth()/2, h/2 - this: sprite(): getHeight()/2)
   }
 
   function dispose = |this| {
@@ -32,8 +27,6 @@ augment AppListener {
   function render = |this| {
     Gdx.gl(): glClearColor(1, 1, 1, 1)
     Gdx.gl(): glClear(GL30.GL_COLOR_BUFFER_BIT())
-
-    let leftKey =  com.badlogic.gdx.Input.Keys.LEFT()
 
     this: batch(): begin()
     this: sprite(): draw(this: batch())
@@ -70,8 +63,8 @@ function main = |args| {
   let cfg = LwjglApplicationConfiguration()
   cfg: title("hello-world")
   cfg: useGL30(false)
-  cfg: width(800)
-  cfg: height(600)
+  cfg: width(480)
+  cfg: height(320)
 
   let lwjglApp = LwjglApplication(helloworld, cfg)
 }
