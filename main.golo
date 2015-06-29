@@ -15,7 +15,7 @@ import com.badlogic.gdx.Input.Keys
 import com.badlogic.gdx.InputProcessor
 
 struct InputProcFacade = {key}
-augment Input {
+augment InputProcFacade {
     function keyDown = |this, keycode| {
       return false
     }
