@@ -1,2 +1,2 @@
 #!/bin/sh
-golo golo --classpath jars/*.jar --files $1.golo
+golo golo --classpath jars/*.jar --files modules/*.golo $1.golo
