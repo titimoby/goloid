@@ -5,22 +5,18 @@ import com.badlogic.gdx.Input$Keys
 import com.badlogic.gdx.InputProcessor
 import gololang.Adapters
 
-struct InputProcFacade = {key}
+struct InputProcFacade = {left, right, up}
 augment InputProcFacade {
-    function keyDown = |this, keycode, body| {
-      let TURN_SPEED = 0.02_F
+    function keyDown = |this, keycode| {
       case {
         when (keycode == UP()) {
-          println("up")
-          return true
+          this: up(true)
         }
         when (keycode == LEFT()) {
-          body: setTransform(body: getPosition(), body: getAngle()+TURN_SPEED)
-          return true
+          this: left(true)
         }
         when (keycode == RIGHT()) {
-          body: setTransform(body: getPosition(), body: getAngle()-TURN_SPEED)
-          return true
+          this: right(true)
         }
         otherwise {
           return false
@@ -29,6 +25,20 @@ augment InputProcFacade {
       return true
     }
     function keyUp = |this, keycode| {
+      case {
+        when (keycode == UP()) {
+          this: up(false)
+        }
+        when (keycode == LEFT()) {
+          this: left(false)
+        }
+        when (keycode == RIGHT()) {
+          this: right(false)
+        }
+        otherwise {
+          return false
+        }
+      }
       return false
     }
     function keyTyped = |this, character| {
@@ -51,11 +61,10 @@ augment InputProcFacade {
     }
 }
 
-function createInputProc = |body| {
-  let delegate = InputProcFacade()
+function createInputProc = |delegate| {
   return Adapter()
   : interfaces(["com.badlogic.gdx.InputProcessor"])
-  : implements("keyDown", |this, keycode| { return delegate: keyDown(keycode, body) })
+  : implements("keyDown", |this, keycode| { return delegate: keyDown(keycode) })
   : implements("keyUp", |this, keycode| { return delegate: keyUp(keycode) })
   : implements("keyTyped", |this, character| { return delegate: keyTyped(character) })
   : implements("touchDown", |this, screenX, screenY, pointer, button| { return delegate: touchDown(screenX, screenY, pointer, button) })

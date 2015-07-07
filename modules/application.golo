@@ -18,9 +18,15 @@ import com.badlogic.gdx.physics.box2d
 
 let PIXELS_TO_METERS = 100_F
 
-struct AppListener = { batch, texture, sprite, world, body, camera }
+struct AppListener = { batch, texture, sprite, world, body, camera, inputFacade }
 augment AppListener {
   function create = |this| {
+    # create input management object
+    this: inputFacade(InputProcFacade(false, false, false))
+    let inputProc = createInputProc(this: inputFacade()): newInstance()
+    # set the input management
+    Gdx.input(): setInputProcessor(inputProc)
+
     # create player sprite
     this: batch(SpriteBatch())
     this: texture(Texture(Gdx.files(): internal("data/player.png")))
@@ -51,11 +57,6 @@ augment AppListener {
     this: body(): createFixture(fixtureDef)
     shape: dispose()
 
-    # create input management object
-    let inputProc = createInputProc(this: body()): newInstance()
-    # set the input management
-    Gdx.input(): setInputProcessor(inputProc)
-
     this: camera( OrthographicCamera(1_F*width, 1_F*height ))
   }
 
@@ -65,6 +66,16 @@ augment AppListener {
   }
 
   function render = |this| {
+    let TURN_SPEED = 0.02_F
+    if (this: inputFacade(): left() == true) {
+      this: body(): setTransform(this: body(): getPosition(), this: body(): getAngle()+TURN_SPEED)
+    }
+    if (this: inputFacade(): right() == true) {
+        this: body(): setTransform(this: body(): getPosition(), this: body(): getAngle()-TURN_SPEED)
+    }
+    if (this: inputFacade(): up() == true) {
+
+    }
     this: camera(): update()
     # Step the physics simulation forward at a rate of 60hz
     this: world(): step(1_F/60_F, 6, 2)
