@@ -74,7 +74,10 @@ augment AppListener {
         this: body(): setTransform(this: body(): getPosition(), this: body(): getAngle()-TURN_SPEED)
     }
     if (this: inputFacade(): up() == true) {
-
+      let power = 1_F
+      let vx = floatValue(-1*power*sin(doubleValue(this: body(): getAngle())))
+      let vy = floatValue(power*cos(doubleValue(this: body(): getAngle())))
+      this: body(): setLinearVelocity(vx, vy)
     }
     this: camera(): update()
     # Step the physics simulation forward at a rate of 60hz
