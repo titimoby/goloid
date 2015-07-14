@@ -8,38 +8,37 @@ import gololang.Adapters
 struct InputProcFacade = {left, right, up}
 augment InputProcFacade {
     function keyDown = |this, keycode| {
-      case {
-        when (keycode == UP()) {
-          this: up(true)
-        }
-        when (keycode == LEFT()) {
-          this: left(true)
-        }
-        when (keycode == RIGHT()) {
-          this: right(true)
-        }
-        otherwise {
-          return false
-        }
+      var job = false
+      if (keycode == UP()) {
+        job = true
+        this: up(true)
       }
-      return true
+      if (keycode == LEFT()) {
+        job = true
+        this: left(true)
+      }
+      if (keycode == RIGHT()) {
+        job = true
+        this: right(true)
+      }
+      return job
     }
+
     function keyUp = |this, keycode| {
-      case {
-        when (keycode == UP()) {
-          this: up(false)
-        }
-        when (keycode == LEFT()) {
-          this: left(false)
-        }
-        when (keycode == RIGHT()) {
-          this: right(false)
-        }
-        otherwise {
-          return false
-        }
+      var job = false
+      if (keycode == UP()) {
+        job = true
+        this: up(false)
       }
-      return false
+      if (keycode == LEFT()) {
+        job = true
+        this: left(false)
+      }
+      if (keycode == RIGHT()) {
+        job = true
+        this: right(false)
+      }
+      return job
     }
     function keyTyped = |this, character| {
       return false

@@ -9,15 +9,17 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration
 
 function main = |args| {
-  println("start")
+  let GAME_WIDTH = 800
+  let GAME_HEIGHT = 600
+  let PIXELS_TO_METERS = 100_F
 
-  let helloworld = createAppListener(): newInstance()
+  let helloworld = createAppListener(PIXELS_TO_METERS): newInstance()
 
   let cfg = LwjglApplicationConfiguration()
   cfg: title("hello-world")
   cfg: useGL30(false)
-  cfg: width(800)
-  cfg: height(600)
+  cfg: width(GAME_WIDTH)
+  cfg: height(GAME_HEIGHT)
 
   let lwjglApp = LwjglApplication(helloworld, cfg)
 }

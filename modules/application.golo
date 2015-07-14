@@ -16,11 +16,14 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d
 
-let PIXELS_TO_METERS = 100_F
+struct propStruct = {power, powerInc, maxVelocity, turnSpeed}
 
-struct AppListener = { batch, texture, sprite, world, body, camera, inputFacade }
+struct AppListener = { pixels_meters, batch, texture, sprite, world, body, camera, inputFacade, prop }
 augment AppListener {
   function create = |this| {
+    # set the power increment
+    this: prop(propStruct(0_F, 0.1_F, 1.5_F, 0.02_F))
+
     # create input management object
     this: inputFacade(InputProcFacade(false, false, false))
     let inputProc = createInputProc(this: inputFacade()): newInstance()
@@ -29,7 +32,7 @@ augment AppListener {
 
     # create player sprite
     this: batch(SpriteBatch())
-    this: texture(Texture(Gdx.files(): internal("data/player.png")))
+    this: texture(Texture(Gdx.files(): internal("data/player64x48.png")))
     this: sprite(Sprite(this: texture()))
     let width = Gdx.graphics(): getWidth()
     let height = Gdx.graphics(): getHeight()
@@ -42,13 +45,13 @@ augment AppListener {
     let bodyDef = BodyDef()
     bodyDef: type( BodyDef$BodyType.DynamicBody() )
     bodyDef: position(): set(
-      (this: sprite(): getX() + this: sprite(): getWidth()/2) / PIXELS_TO_METERS,
-      (this: sprite(): getY() + this: sprite(): getHeight()/2) / PIXELS_TO_METERS)
+      (this: sprite(): getX() + this: sprite(): getWidth()/2) / this: pixels_meters(),
+      (this: sprite(): getY() + this: sprite(): getHeight()/2) / this: pixels_meters())
     this: body(this: world(): createBody(bodyDef))
 
     let shape = PolygonShape()
-    shape: setAsBox(this: sprite(): getWidth()/2 / PIXELS_TO_METERS,
-      this: sprite(): getHeight()/2 / PIXELS_TO_METERS)
+    shape: setAsBox(this: sprite(): getWidth()/2 / this: pixels_meters(),
+      this: sprite(): getHeight()/2 / this: pixels_meters())
 
     let fixtureDef = FixtureDef()
     fixtureDef: shape(shape)
@@ -66,18 +69,27 @@ augment AppListener {
   }
 
   function render = |this| {
-    let TURN_SPEED = 0.02_F
     if (this: inputFacade(): left() == true) {
-      this: body(): setTransform(this: body(): getPosition(), this: body(): getAngle()+TURN_SPEED)
+      this: body(): setTransform(this: body(): getPosition(), this: body(): getAngle()+this: prop(): turnSpeed())
     }
     if (this: inputFacade(): right() == true) {
-        this: body(): setTransform(this: body(): getPosition(), this: body(): getAngle()-TURN_SPEED)
+        this: body(): setTransform(this: body(): getPosition(), this: body(): getAngle()-this: prop(): turnSpeed())
     }
     if (this: inputFacade(): up() == true) {
-      let power = 1_F
-      let vx = floatValue(-1*power*sin(doubleValue(this: body(): getAngle())))
-      let vy = floatValue(power*cos(doubleValue(this: body(): getAngle())))
-      this: body(): setLinearVelocity(vx, vy)
+      let push = this: prop(): power() + this: prop(): powerInc()
+      let vx = floatValue(-1*push*sin(doubleValue(this: body(): getAngle())))
+      let vy = floatValue(push*cos(doubleValue(this: body(): getAngle())))
+
+      let velocity =  this: body(): getLinearVelocity()
+      velocity: add(vx, vy)
+      velocity: limit(this: prop(): maxVelocity())
+      #let computedVelocity = (velocity: x()*velocity: x() + velocity: y()*velocity: y())
+      #let maxV = this: prop(): maxVelocity()
+
+      #if (computedVelocity <= maxV)  {
+        this: body(): setLinearVelocity(vx, vy)
+        this: prop(): power(push)
+      #}
     }
     this: camera(): update()
     # Step the physics simulation forward at a rate of 60hz
@@ -87,11 +99,25 @@ augment AppListener {
     Gdx.gl(): glClear(GL30.GL_COLOR_BUFFER_BIT())
 
     # Set the sprite's position from the updated physics body location
-    this: sprite(): setPosition(
-      (this: body(): getPosition(): x() * PIXELS_TO_METERS)
-          - this: sprite(): getWidth()/2 ,
-      (this: body(): getPosition(): y() * PIXELS_TO_METERS)
-          - this: sprite(): getHeight()/2 )
+    var bodyX = (this: body(): getPosition(): x()* this: pixels_meters()) - this: sprite(): getWidth()/2
+    var bodyY = (this: body(): getPosition(): y()* this: pixels_meters()) - this: sprite(): getHeight()/2
+
+#println( this: body(): getPosition(): x() + " " + this: body(): getPosition(): y())
+    if (intValue(bodyX) > 800) {
+      this: body(): setTransform(0_F, this: body(): getPosition(): y(), this: body(): getAngle())
+      bodyX = 0
+    } else if (bodyX < 0_F) {
+      this: body(): setTransform(Gdx.graphics(): getWidth()/this: pixels_meters(), this: body(): getPosition(): y(), this: body(): getAngle())
+      bodyX = Gdx.graphics(): getWidth()
+    }
+    if (intValue(bodyY) > 600) {
+      this: body(): setTransform(this: body(): getPosition(): x(), 0_F, this: body(): getAngle())
+      bodyY = 0
+    } else if (bodyY < 0_F) {
+      this: body(): setTransform(this: body(): getPosition(): x(), Gdx.graphics(): getHeight()/this: pixels_meters(), this: body(): getAngle())
+      bodyY = Gdx.graphics(): getHeight()
+    }
+    this: sprite(): setPosition(bodyX, bodyY)
 
     # Ditto for rotation
     this: sprite(): setRotation(floatValue(toDegrees(doubleValue(this: body(): getAngle()))) )
@@ -112,8 +138,8 @@ augment AppListener {
   }
 }
 
-function createAppListener = {
-    let delegate = AppListener()
+function createAppListener = |pixels_meters| {
+    let delegate = AppListener(pixels_meters, 0, 0, 0, 0, 0, 0, 0, 0)
     return Adapter()
     : interfaces(["com.badlogic.gdx.ApplicationListener"])
     : implements("create", |this| { return delegate: create() })
