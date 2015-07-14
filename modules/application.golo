@@ -16,13 +16,13 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d
 
-struct propStruct = {power, powerInc, maxVelocity, turnSpeed}
+struct propStruct = {debug, powerInc, maxVelocity, turnSpeed}
 
 struct AppListener = { pixels_meters, batch, texture, sprite, world, body, camera, inputFacade, prop }
 augment AppListener {
   function create = |this| {
     # set the power increment
-    this: prop(propStruct(0_F, 0.1_F, 1.5_F, 0.02_F))
+    this: prop(propStruct(0, 0.1_F, 1.5_F, 0.02_F))
 
     # create input management object
     this: inputFacade(InputProcFacade(false, false, false))
@@ -69,6 +69,9 @@ augment AppListener {
   }
 
   function render = |this| {
+    # Step the physics simulation forward at a rate of 60hz
+    this: world(): step(1_F/60_F, 6, 2)
+
     if (this: inputFacade(): left() == true) {
       this: body(): setTransform(this: body(): getPosition(), this: body(): getAngle()+this: prop(): turnSpeed())
     }
@@ -76,24 +79,25 @@ augment AppListener {
         this: body(): setTransform(this: body(): getPosition(), this: body(): getAngle()-this: prop(): turnSpeed())
     }
     if (this: inputFacade(): up() == true) {
-      let push = this: prop(): power() + this: prop(): powerInc()
-      let vx = floatValue(-1*push*sin(doubleValue(this: body(): getAngle())))
-      let vy = floatValue(push*cos(doubleValue(this: body(): getAngle())))
+    #  let push = this: prop(): power() + this: prop(): powerInc()
+      let desiredVx = floatValue(-1*this: prop(): powerInc()*sin(doubleValue(this: body(): getAngle())))
+      let desiredVy = floatValue(this: prop(): powerInc()*cos(doubleValue(this: body(): getAngle())))
 
       let velocity =  this: body(): getLinearVelocity()
-      velocity: add(vx, vy)
-      velocity: limit(this: prop(): maxVelocity())
-      #let computedVelocity = (velocity: x()*velocity: x() + velocity: y()*velocity: y())
-      #let maxV = this: prop(): maxVelocity()
+      let desiredVelocity = Vector2(velocity: x()+desiredVx, velocity: y()+desiredVy)
+      #println("velocity "+velocity: x() + " "+ velocity: y())
+      #println("desiredVelocity "+desiredVelocity: x() + " "+ desiredVelocity: y())
 
-      #if (computedVelocity <= maxV)  {
-        this: body(): setLinearVelocity(vx, vy)
-        this: prop(): power(push)
-      #}
+      desiredVelocity: limit(this: prop(): maxVelocity())
+      let computedVelocity = (desiredVelocity: x()*desiredVelocity: x() + desiredVelocity: y()*desiredVelocity: y())
+      let maxV = this: prop(): maxVelocity()
+
+      if (computedVelocity <= maxV)  {
+        this: body(): setLinearVelocity(desiredVelocity)
+      #  this: prop(): power(push)
+      }
     }
     this: camera(): update()
-    # Step the physics simulation forward at a rate of 60hz
-    this: world(): step(1_F/60_F, 6, 2)
 
     Gdx.gl(): glClearColor(1, 1, 1, 1)
     Gdx.gl(): glClear(GL30.GL_COLOR_BUFFER_BIT())
