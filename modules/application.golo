@@ -22,7 +22,7 @@ struct AppListener = { pixels_meters, batch, texture, sprite, world, body, camer
 augment AppListener {
   function create = |this| {
     # set the power increment
-    this: prop(propStruct(0, 0.1_F, 1.5_F, 0.02_F))
+    this: prop(propStruct(0, 0.1_F, 10_F, 0.02_F))
 
     # create input management object
     this: inputFacade(InputProcFacade(false, false, false))
@@ -94,26 +94,25 @@ augment AppListener {
 
       if (computedVelocity <= maxV)  {
         this: body(): setLinearVelocity(desiredVelocity)
-      #  this: prop(): power(push)
       }
     }
     this: camera(): update()
 
-    Gdx.gl(): glClearColor(1, 1, 1, 1)
+    Gdx.gl(): glClearColor(0, 0, 0, 1)
     Gdx.gl(): glClear(GL30.GL_COLOR_BUFFER_BIT())
 
     # Set the sprite's position from the updated physics body location
     var bodyX = (this: body(): getPosition(): x()* this: pixels_meters()) - this: sprite(): getWidth()/2
     var bodyY = (this: body(): getPosition(): y()* this: pixels_meters()) - this: sprite(): getHeight()/2
 
-    if (intValue(bodyX) > 800) {
+    if (intValue(bodyX) > Gdx.graphics(): getWidth()) {
       bodyX = this: sprite(): getWidth()/2
       this: body(): setTransform(bodyX/this: pixels_meters(), this: body(): getPosition(): y(), this: body(): getAngle())
     } else if (bodyX < -1_F) {
       this: body(): setTransform(Gdx.graphics(): getWidth()/this: pixels_meters(), this: body(): getPosition(): y(), this: body(): getAngle())
       bodyX = Gdx.graphics(): getWidth()
     }
-    if (intValue(bodyY) > 600) {
+    if (intValue(bodyY) > Gdx.graphics(): getHeight()) {
       bodyY = this: sprite(): getHeight()/2
       this: body(): setTransform(this: body(): getPosition(): x(), bodyY/this: pixels_meters(), this: body(): getAngle())
     } else if (bodyY < -1_F) {
@@ -124,7 +123,6 @@ augment AppListener {
     bodyY = (this: body(): getPosition(): y()* this: pixels_meters()) - this: sprite(): getHeight()/2
     this: sprite(): setPosition(bodyX, bodyY)
 
-    # Ditto for rotation
     this: sprite(): setRotation(floatValue(toDegrees(doubleValue(this: body(): getAngle()))) )
 
     this: batch(): begin()
