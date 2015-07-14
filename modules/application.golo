@@ -102,21 +102,22 @@ augment AppListener {
     var bodyX = (this: body(): getPosition(): x()* this: pixels_meters()) - this: sprite(): getWidth()/2
     var bodyY = (this: body(): getPosition(): y()* this: pixels_meters()) - this: sprite(): getHeight()/2
 
-#println( this: body(): getPosition(): x() + " " + this: body(): getPosition(): y())
     if (intValue(bodyX) > 800) {
-      this: body(): setTransform(0_F, this: body(): getPosition(): y(), this: body(): getAngle())
-      bodyX = 0
-    } else if (bodyX < 0_F) {
+      bodyX = this: sprite(): getWidth()/2
+      this: body(): setTransform(bodyX/this: pixels_meters(), this: body(): getPosition(): y(), this: body(): getAngle())
+    } else if (bodyX < -1_F) {
       this: body(): setTransform(Gdx.graphics(): getWidth()/this: pixels_meters(), this: body(): getPosition(): y(), this: body(): getAngle())
       bodyX = Gdx.graphics(): getWidth()
     }
     if (intValue(bodyY) > 600) {
-      this: body(): setTransform(this: body(): getPosition(): x(), 0_F, this: body(): getAngle())
-      bodyY = 0
-    } else if (bodyY < 0_F) {
+      bodyY = this: sprite(): getHeight()/2
+      this: body(): setTransform(this: body(): getPosition(): x(), bodyY/this: pixels_meters(), this: body(): getAngle())
+    } else if (bodyY < -1_F) {
       this: body(): setTransform(this: body(): getPosition(): x(), Gdx.graphics(): getHeight()/this: pixels_meters(), this: body(): getAngle())
       bodyY = Gdx.graphics(): getHeight()
     }
+    bodyX = (this: body(): getPosition(): x()* this: pixels_meters()) - this: sprite(): getWidth()/2
+    bodyY = (this: body(): getPosition(): y()* this: pixels_meters()) - this: sprite(): getHeight()/2
     this: sprite(): setPosition(bodyX, bodyY)
 
     # Ditto for rotation
