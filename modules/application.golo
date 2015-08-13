@@ -5,25 +5,31 @@ import gololang.Adapters
 import goloid.keys
 
 import java.lang.Math
+import java.util.ArrayList
+
 import com.badlogic.gdx.ApplicationListener
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.GL30
+import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d
+import com.badlogic.gdx.graphics.glutils.ImmediateModeRenderer20
+import com.badlogic.gdx.graphics.glutils
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer$ShapeType
 
 struct propStruct = {debug, powerInc, maxVelocity, turnSpeed}
+struct starField = {starsCoord, timer}
 
-struct AppListener = { pixels_meters, batch, texture, sprite, world, body, camera, inputFacade, prop }
+struct AppListener = { game_width, game_height, pixels_meters, batch, texture, sprite, world, body, camera, inputFacade, prop, stars }
 augment AppListener {
   function create = |this| {
     # set the power increment
     this: prop(propStruct(0, 0.1_F, 10_F, 0.02_F))
-
+    this: stars(starField(createStarsCoord(100, this: game_width(), this: game_height()), 0))
     # create input management object
     this: inputFacade(InputProcFacade(false, false, false))
     let inputProc = createInputProc(this: inputFacade()): newInstance()
@@ -101,6 +107,12 @@ augment AppListener {
     Gdx.gl(): glClearColor(0, 0, 0, 1)
     Gdx.gl(): glClear(GL30.GL_COLOR_BUFFER_BIT())
 
+    if (this: stars(): timer() < 60*3) {
+      this: stars(): timer(this: stars(): timer()+1)
+    } else {
+      this: stars(): timer(0)
+    }
+    drawStarfield(this)
     # Set the sprite's position from the updated physics body location
     var bodyX = (this: body(): getPosition(): x()* this: pixels_meters()) - this: sprite(): getWidth()/2
     var bodyY = (this: body(): getPosition(): y()* this: pixels_meters()) - this: sprite(): getHeight()/2
@@ -130,6 +142,26 @@ augment AppListener {
     this: batch(): end()
   }
 
+  function createStarsCoord = |nbStars, game_width, game_height| {
+    let starsCoord = ArrayList()
+    for (var i = 0, i < nbStars, i = i + 1) {
+      starsCoord: add(Vector2(floatValue(random())*game_width, floatValue(random())*game_height))
+    }
+    return starsCoord
+  }
+
+  function drawStarfield = |this| {
+    let renderer = ShapeRenderer()
+
+    renderer: begin(Line())
+    renderer: setColor(WHITE())
+    foreach star in this: stars(): starsCoord() {
+      renderer: line(star: x(), star: y(), star: x(), star: y()+1)
+    }
+
+    renderer: end()
+  }
+
   function resize = |this, width, height| {
     println("resize to implement")
   }
@@ -141,8 +173,8 @@ augment AppListener {
   }
 }
 
-function createAppListener = |pixels_meters| {
-    let delegate = AppListener(pixels_meters, 0, 0, 0, 0, 0, 0, 0, 0)
+function createAppListener = |game_width, game_height, pixels_meters| {
+    let delegate = AppListener(game_width, game_height, pixels_meters, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     return Adapter()
     : interfaces(["com.badlogic.gdx.ApplicationListener"])
     : implements("create", |this| { return delegate: create() })

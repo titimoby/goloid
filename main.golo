@@ -13,7 +13,7 @@ function main = |args| {
   let GAME_HEIGHT = 768
   let PIXELS_TO_METERS = 100_F
 
-  let goloidApp = createAppListener(PIXELS_TO_METERS): newInstance()
+  let goloidApp = createAppListener(GAME_WIDTH, GAME_HEIGHT, PIXELS_TO_METERS): newInstance()
 
   let cfg = LwjglApplicationConfiguration()
   cfg: title("Goloid")
